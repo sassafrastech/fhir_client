@@ -149,18 +149,20 @@ module FHIR
     # secret -- client secret
     # authorize_path -- absolute path of authorization endpoint
     # token_path -- absolute path of token endpoint
-    def set_oauth2_auth(client, secret, authorize_path, token_path, site = nil)
+    # options -- additional options for the request
+    def set_oauth2_auth(params)
       FHIR.logger.info 'Configuring the client to use OpenID Connect OAuth2 authentication.'
       @use_oauth2_auth = true
       @use_basic_auth = false
       @security_headers = {}
-      options = {
-        site: site || @base_service_url,
-        authorize_url: authorize_path,
-        token_url: token_path,
+      options = params[:options]
+      options.merge!({
+        site: params[:site] || @base_service_url,
+        authorize_url: params[:authorize_path],
+        token_url: params[:token_path],
         raise_errors: true
-      }
-      client = OAuth2::Client.new(client, secret, options)
+      })
+      client = OAuth2::Client.new(params[:client], params[:secret], options)
       client.connection.proxy(proxy) unless proxy.nil?
       @client = client.client_credentials.get_token
     end
